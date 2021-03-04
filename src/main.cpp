@@ -9,15 +9,25 @@
 
 #include <iostream> // stdin, stdout
 #include <string> // string
+#include "alsa_driver.hpp"
 
+#define APPNAME "MixPlayer"
 using namespace std;
 //----------------------------------------------------------
 //========================================
 
-void test() {
-    cout << "Test\n\n";
 
+int test() {
+    cout << "Test on " << APPNAME << "\n\n";
+    int err =0;
+    if ( (err = openDevice()) ) {
+        return EXIT_FAILURE;
+    }
+ 
+    closeDevice();
     cout << endl;
+  
+    return 0;
 }
 //----------------------------------------------------------
 

@@ -1,3 +1,7 @@
+# MakeFile for mixplayer
+# Author: Coolbrother
+# Date: Thu, 04/03/2021
+
 CXX=g++
 CXXFLAGS := -std=c++11 -Wall -Wextra -pedantic -g
 CPPFLAGS=-lm -lasound
@@ -15,6 +19,8 @@ SRCS := $(wildcard $(SRC_DIR)/*.cpp)
 # ".o" file name strings
 OBJS := $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SRCS))
 TARGET := $(BUILD_DIR)/$(EXEC)
+$(info Create build directory if not exists)
+$(shell mkdir -vp $(BUILD_DIR))
 
 # for debugging
 # $(info srcs:  $(SRCS))
@@ -23,7 +29,6 @@ TARGET := $(BUILD_DIR)/$(EXEC)
 
 # Compile C++ source
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
-	$(MKDIR_P) $(dir $@)
 	$(info Compiling C++ sources:  $@, $<)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
