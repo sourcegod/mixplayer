@@ -4,5 +4,5 @@
 int openDevice();
 void closeDevice();
 void writeBuf(float* buf, int nbFrames, int nbTimes);
-
+void writeFile();
 #endif // ALSA_DRIVER_HPP

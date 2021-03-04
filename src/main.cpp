@@ -23,7 +23,8 @@ int test() {
     if ( (err = openDevice()) ) {
         return EXIT_FAILURE;
     }
- 
+    writeFile(); 
+    
     closeDevice();
     cout << endl;
   
