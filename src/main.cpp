@@ -9,7 +9,7 @@
 
 #include <iostream> // stdin, stdout
 #include <string> // string
-#include "alsa_driver.hpp"
+#include "mplayer.hpp"
 
 #define APPNAME "MixPlayer"
 using namespace std;
@@ -20,12 +20,13 @@ using namespace std;
 int test() {
     cout << "Test on " << APPNAME << "\n\n";
     int err =0;
-    if ( (err = openDevice()) ) {
+    MPlayer player;
+    if ( (err = player.openDevice()) ) {
         return EXIT_FAILURE;
     }
-    writeFile(); 
+    player.readFromInput(); 
     
-    closeDevice();
+    player.closeDevice();
     cout << endl;
   
     return 0;
