@@ -9,8 +9,11 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <iostream>
 #include <alsa/asoundlib.h>
+#include <sndfile.h>
 #include "mplayer.hpp"
+
 #define APPNAME "AlsaDriver"
 #define printErr(msg) (fprintf(stderr, "%s\n", msg), exit(1))
 
@@ -22,6 +25,11 @@ MPlayer::MPlayer() {
     this->m_periodSize =0; 
     this->m_bufferSize =0;
 
+}
+//-----------------------------------------
+
+MPlayer::~MPlayer() {
+    this->closeDevice();
 }
 //-----------------------------------------
 
@@ -65,7 +73,7 @@ void MPlayer::closeDevice() {
 void MPlayer::writeBuf(float* buf, int nbFrames, int nbTimes) {
   for (int i=0; i < nbTimes; i++) {
       // Sending the sound
-      m_frames += snd_pcm_writei(m_handle, buf, nbFrames);
+      m_nbFrames += snd_pcm_writei(m_handle, buf, nbFrames);
   }
 
 }
@@ -105,3 +113,43 @@ void MPlayer::readFromInput() {
 }
 //-----------------------------------------
 
+bool MPlayer::readSoundFile(const char* filename) {
+    m_filename = filename;
+    m_soundFile = sf_open(m_filename, SFM_READ, &m_soundInfo);
+    if (m_soundFile) {
+        m_nbChannels = m_soundInfo.channels;
+        m_sampleRate = m_soundInfo.samplerate;
+        m_nbFrames = m_soundInfo.frames;
+        // Read the entire sound file to buffer on the heap
+        m_bufSound.reset(new float[m_nbFrames * m_nbChannels]);
+        sf_count_t ret = sf_readf_float(m_soundFile, m_bufSound.get(), m_nbFrames);
+        sf_close(m_soundFile);
+        if (ret == 0) {
+            return false;
+        }
+
+        return true;
+    } else {
+        sf_close(m_soundFile);
+        // throw "Unable to read the input file!";
+        std::cerr << "Unable to read the input file " << filename << "!" << std::endl;
+        return false;
+    }
+}
+//-----------------------------------------
+
+void MPlayer::loadFile(const char* filename) {
+    
+    this->readSoundFile(filename);
+    // this->closeDevice();
+}
+//-----------------------------------------
+
+void MPlayer::printSoundInfo() const {
+    std::cout << "Filename: " << m_filename << std::endl;
+    std::cout << "Number of Channels: " << m_nbChannels << std::endl;
+    std::cout << "Number of Frames: " << m_nbFrames << std::endl;
+    std::cout << "Sample Rate: " << m_sampleRate << std::endl;
+
+}
+//-----------------------------------------

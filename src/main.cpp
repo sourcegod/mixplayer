@@ -17,14 +17,16 @@ using namespace std;
 //========================================
 
 
-int test() {
+int test(const char* filename) {
     cout << "Test on " << APPNAME << "\n\n";
     int err =0;
     MPlayer player;
     if ( (err = player.openDevice()) ) {
         return EXIT_FAILURE;
     }
-    player.readFromInput(); 
+    // player.readFromInput(); 
+    player.loadFile(filename);
+    player.printSoundInfo();
     
     player.closeDevice();
     cout << endl;
@@ -33,9 +35,14 @@ int test() {
 }
 //----------------------------------------------------------
 
-int main() {
-    test();
-  cout << "Finished...\n" << endl;
+int main(int argc, char** argv) {
+    if (argc < 2) {
+        // Tell the user how to run the program
+        std::cerr << "Usage: " << argv[0] << " sound_file" << std::endl;
+        return 1;
+    }
+    test(argv[1]);
+    cout << "Finished...\n" << endl;
 
   return 0;
 }

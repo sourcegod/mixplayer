@@ -4,7 +4,7 @@
 
 CXX=g++
 CXXFLAGS := -std=c++11 -Wall -Wextra -pedantic -g
-CPPFLAGS=-lm -lasound
+CPPFLAGS=-lm -lasound -lsndfile
 
 EXEC := mixplayer
 BUILD_DIR := ./build
