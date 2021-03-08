@@ -18,12 +18,14 @@ public:
     void loadFile(const char* filename);
     bool readSoundFile(const char* filename);
     void printSoundInfo() const;
+    void play();
 
 private:
     const char* m_filename;
     SF_INFO m_soundInfo;
     SNDFILE* m_soundFile;
     std::unique_ptr<float> m_bufSound;
+    // float* m_bufSound;
     
     snd_pcm_t* m_handle;
     snd_pcm_format_t m_format;

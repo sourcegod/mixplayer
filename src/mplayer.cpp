@@ -19,7 +19,7 @@
 
 MPlayer::MPlayer() {
     this->m_handle = NULL;
-    this->m_format = SND_PCM_FORMAT_FLOAT;
+    this->m_format = SND_PCM_FORMAT_FLOAT_LE;
     this->m_nbChannels =2; 
     this->m_sampleRate =44100;
     this->m_periodSize =0; 
@@ -63,6 +63,7 @@ void MPlayer::closeDevice() {
     // closing sound device
     // necessary to flush and send short sample
     if (m_handle) {
+        std::cout << "Closing the device.." << std::endl;
         snd_pcm_drain(m_handle);
 	      snd_pcm_close(m_handle);
     }
@@ -122,7 +123,10 @@ bool MPlayer::readSoundFile(const char* filename) {
         m_nbFrames = m_soundInfo.frames;
         // Read the entire sound file to buffer on the heap
         m_bufSound.reset(new float[m_nbFrames * m_nbChannels]);
+        // m_bufSound = new float[m_nbFrames * m_nbChannels];
         sf_count_t ret = sf_readf_float(m_soundFile, m_bufSound.get(), m_nbFrames);
+        // sf_count_t ret = sf_readf_float(m_soundFile, m_bufSound, m_nbFrames);
+        std::cout << "nbFrames read: " << ret << std::endl;
         sf_close(m_soundFile);
         if (ret == 0) {
             return false;
@@ -135,6 +139,7 @@ bool MPlayer::readSoundFile(const char* filename) {
         std::cerr << "Unable to read the input file " << filename << "!" << std::endl;
         return false;
     }
+
 }
 //-----------------------------------------
 
@@ -153,3 +158,31 @@ void MPlayer::printSoundInfo() const {
 
 }
 //-----------------------------------------
+
+void MPlayer::play() {
+    int ret;
+    if (snd_pcm_get_params(m_handle, &m_bufferSize, &m_periodSize) < 0) {
+        printErr("Error: snd_pcm_get_params");
+    }
+    m_periodSize = 256;
+    // m_bufferSize = m_periodSize * 3;
+    printf("period_size = %ld\n", (long)m_periodSize);
+    printf("buffer_size = %ld\n", (long)m_bufferSize);
+    std::cout << std::endl;
+    int maxFrames = m_nbFrames * m_nbChannels;
+    int maxSize = m_periodSize * m_nbChannels;
+    std::cout << "maxFrames: " << maxFrames << ", maxSize: " << maxSize << std::endl;
+    // for (int i = 0; i < maxFrames; i += m_bufferSize) {
+        
+        // ret = snd_pcm_writei(m_handle, m_bufSound.get() + i, m_bufferSize);
+        ret = snd_pcm_writei(m_handle, m_bufSound.get(), m_nbFrames);
+        std::cout << "ret: " << ret << std::endl;
+        if (ret < 0) {
+          std::cerr << "Error: XRun is ocurred\n";
+          // break;
+        }
+    // }
+
+}
+//-----------------------------------------
+

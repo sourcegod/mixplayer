@@ -27,8 +27,9 @@ int test(const char* filename) {
     // player.readFromInput(); 
     player.loadFile(filename);
     player.printSoundInfo();
+    player.play();
     
-    player.closeDevice();
+    // player.closeDevice();
     cout << endl;
   
     return 0;
