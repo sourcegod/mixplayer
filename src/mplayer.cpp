@@ -16,6 +16,7 @@
 
 #define APPNAME "AlsaDriver"
 #define printErr(msg) (fprintf(stderr, "%s\n", msg), exit(1))
+#define BUF_LEN 48000
 
 MPlayer::MPlayer() {
     this->m_handle = NULL;
@@ -24,6 +25,7 @@ MPlayer::MPlayer() {
     this->m_sampleRate =44100;
     this->m_periodSize =0; 
     this->m_bufferSize =0;
+    // *m_bufData = m_bufData[BUF_LEN];
 
 }
 //-----------------------------------------
@@ -114,52 +116,76 @@ void MPlayer::readFromInput() {
 }
 //-----------------------------------------
 
-bool MPlayer::readSoundFile(const char* filename) {
+bool MPlayer::readSoundFile() {
+    sf_count_t readCount =0;
+    int ret =0;
+    float bufData[BUF_LEN];
+    int frameCount = BUF_LEN/2;
+        std::cout << "nbFrames: " << m_nbFrames << ", duration: " << m_duration << std::endl;
+        // Note: using sf_read_float instead sf_readf_float function to manage samples instead frames
+    while ((readCount = sf_read_float(m_soundFile, bufData, BUF_LEN))) {
+        std::cout << "readCount: " << readCount << std::endl;
+        ret  = snd_pcm_writei(m_handle, bufData, frameCount);
+        // std::cout << "ret: " << ret << std::endl;
+        if (ret < 0) {
+            std::cerr << "Error: XRun is ocurred\n";
+            break;
+        }
+
+        ::memset(bufData,  0, sizeof(BUF_LEN));
+    
+    }
+    
+    return false;
+}
+//-----------------------------------------
+
+void MPlayer::loadFile(const char* filename) {
     m_filename = filename;
     m_soundFile = sf_open(m_filename, SFM_READ, &m_soundInfo);
     if (m_soundFile) {
         m_nbChannels = m_soundInfo.channels;
         m_sampleRate = m_soundInfo.samplerate;
         m_nbFrames = m_soundInfo.frames;
+        m_duration = m_nbFrames / m_sampleRate;
+        /*
         // Read the entire sound file to buffer on the heap
-        m_bufSound.reset(new float[m_nbFrames * m_nbChannels]);
+        // m_bufSound.reset(new float[m_nbFrames * m_nbChannels]);
         // m_bufSound = new float[m_nbFrames * m_nbChannels];
-        sf_count_t ret = sf_readf_float(m_soundFile, m_bufSound.get(), m_nbFrames);
+        // sf_count_t ret = sf_readf_float(m_soundFile, m_bufSound.get(), m_nbFrames);
         // sf_count_t ret = sf_readf_float(m_soundFile, m_bufSound, m_nbFrames);
-        std::cout << "nbFrames read: " << ret << std::endl;
-        sf_close(m_soundFile);
-        if (ret == 0) {
-            return false;
-        }
-
-        return true;
-    } else {
-        sf_close(m_soundFile);
-        // throw "Unable to read the input file!";
-        std::cerr << "Unable to read the input file " << filename << "!" << std::endl;
-        return false;
+        */
     }
 
+   
 }
 //-----------------------------------------
 
-void MPlayer::loadFile(const char* filename) {
+void MPlayer::closeFile() {
+    if (m_soundFile) {
+        sf_close(m_soundFile);
+        m_soundFile = NULL;
     
-    this->readSoundFile(filename);
-    // this->closeDevice();
+    } else {
+        std::cerr << "Unable to close the input file " << m_filename << "!" << std::endl;
+    }    
+
+
 }
 //-----------------------------------------
 
 void MPlayer::printSoundInfo() const {
     std::cout << "Filename: " << m_filename << std::endl;
     std::cout << "Number of Channels: " << m_nbChannels << std::endl;
-    std::cout << "Number of Frames: " << m_nbFrames << std::endl;
     std::cout << "Sample Rate: " << m_sampleRate << std::endl;
+    std::cout << "Number of Frames: " << m_nbFrames << std::endl;
+    std::cout << "Duration: " << m_duration << " secs" << std::endl;
 
 }
 //-----------------------------------------
 
 void MPlayer::play() {
+    /*
     int ret;
     if (snd_pcm_get_params(m_handle, &m_bufferSize, &m_periodSize) < 0) {
         printErr("Error: snd_pcm_get_params");
@@ -172,16 +198,10 @@ void MPlayer::play() {
     int maxFrames = m_nbFrames * m_nbChannels;
     int maxSize = m_periodSize * m_nbChannels;
     std::cout << "maxFrames: " << maxFrames << ", maxSize: " << maxSize << std::endl;
-    // for (int i = 0; i < maxFrames; i += m_bufferSize) {
-        
-        // ret = snd_pcm_writei(m_handle, m_bufSound.get() + i, m_bufferSize);
-        ret = snd_pcm_writei(m_handle, m_bufSound.get(), m_nbFrames);
-        std::cout << "ret: " << ret << std::endl;
-        if (ret < 0) {
-          std::cerr << "Error: XRun is ocurred\n";
-          // break;
-        }
-    // }
+    */
+
+    this->readSoundFile();
+    this->closeFile();
 
 }
 //-----------------------------------------
